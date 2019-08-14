@@ -1,0 +1,1 @@
+# lmd-type-graphql-dynamodb
