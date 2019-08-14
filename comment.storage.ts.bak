@@ -1,0 +1,147 @@
+// import * as redis from "redis";
+// import { promisify } from "util";
+import { Comment } from "./types";
+// import * as AWS from "aws-sdk";
+// import { DynamoDB } from "aws-sdk";
+// import { DynamoDB } from "aws-sdk";
+import { DocumentClient } from "aws-sdk/clients/dynamodb";
+
+// AWS.config.update({
+//   region: "ap-southeast-2"
+// });
+// const dbClient = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+// const dbClient = new DynamoDB.DocumentClient();
+
+// const redisOptions = {
+//   host: process.env.redisHost,
+//   port: process.env.redisPort
+// };
+// let client;
+
+export interface ICommentStorage {
+  get(key): Promise<[Comment]>;
+  add(key: string, userId: string, content: string): Promise<[Comment]>;
+  edit(
+    key: string,
+    msgId: number,
+    userId: string,
+    content: string
+  ): Promise<[Comment]>;
+  delete(key: string, msgId: number, userId: string): Promise<[Comment]>;
+}
+
+export class CommentStorage {
+  dbClient: DocumentClient;
+  constructor() {
+    this.dbClient = new DocumentClient({ apiVersion: "2012-08-10" });
+  }
+
+  // CRUD functions
+  // Get Comments : fetch all comments related to it the module(rfq,quote)
+  // get(key): Promise<[Comment]> {
+  //   return new Promise((resolve, reject) => {
+  get(key): Promise<[Comment]> {
+    console.log(key);
+    return new Promise(resolve => {
+      const comment: Comment = {
+        msgId: 1,
+        userId: "test",
+        content: "content",
+        createdAt: 12424214,
+        deleted: false
+      };
+      setTimeout(() => {
+        resolve([comment]);
+      }, 0);
+    });
+  }
+  getNotFiletered(key): Promise<[Comment]> {
+    // return new Promise((resolve, reject) => {
+    console.log(key);
+    return new Promise(resolve => {
+      const comment: Comment = {
+        msgId: 2,
+        userId: "test",
+        content: "content",
+        createdAt: 12424214,
+        deleted: false
+      };
+      setTimeout(() => {
+        resolve([comment]);
+      }, 0);
+    });
+  }
+  // Add Comments : appends a comment to the list for a specific item
+  async add(key, userId, content): Promise<[Comment]> {
+    //   return new Promise((resolve, reject) => {
+    console.log("Key- ", key);
+    console.log("env: ", process.env);
+    const tableName = process.env.DynamoDbName;
+    const comment: Comment = {
+      msgId: 3,
+      userId,
+      content,
+      createdAt: 12424214,
+      deleted: false
+    };
+    const createParams: DocumentClient.PutItemInput = {
+      TableName: tableName,
+      Item: {
+        jobId: "" + Math.random(),
+        timestamp: "" + Math.random(),
+        ...comment
+      }
+    };
+
+    // return dbClient.put(createParams).promise();
+    return new Promise((resolve, reject) => {
+      console.log("about to insert data");
+      this.dbClient.put(createParams, function(err, result) {
+        if (err) {
+          console.log("Error while inserting data in dynamo: ", err);
+          return reject(err);
+        }
+        console.log("result: ", result);
+        console.log("put data into table ", tableName);
+
+        return resolve([comment]);
+      });
+    });
+  }
+  // Edit Comments  : loop through comments and edit the one with the specific msgId
+  // async edit(key, msgId, userId, content): Promise<[Comment]> {
+  // return new Promise((resolve, reject) => {
+  async edit(key, msgId, userId, content): Promise<[Comment]> {
+    console.log(key);
+    return new Promise(resolve => {
+      const comment: Comment = {
+        // key,
+        msgId,
+        userId,
+        content,
+        createdAt: 12424214,
+        deleted: false
+      };
+      setTimeout(() => {
+        resolve([comment]);
+      }, 0);
+    });
+  }
+  //Delete Comments : loop through the comments and delete the comment with specific msgId
+  async delete(key, msgId, userId): Promise<[Comment]> {
+    // return new Promise((resolve, reject) => {
+    console.log(key), msgId, userId;
+    return new Promise(resolve => {
+      const comment: Comment = {
+        msgId: 5,
+        userId: "dtest",
+        content: "dcontent",
+        createdAt: 12424214,
+        deleted: false
+      };
+      setTimeout(() => {
+        resolve([comment]);
+      }, 0);
+    });
+  }
+}

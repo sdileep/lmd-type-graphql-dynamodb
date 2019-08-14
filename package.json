@@ -1,0 +1,45 @@
+{
+  "name": "lmd-type-graphql-dynamodb",
+  "version": "1.0.0",
+  "description": "Serverless webpack example using Typescript",
+  "main": "handler.js",
+  "scripts": {
+    "test": "mocha -r ts-node/register ./**/*.spec.ts",
+    "start": "sls offline start --port 8080"
+  },
+  "dependencies": {
+    "@aws/dynamodb-data-mapper": "^0.7.3",
+    "@aws/dynamodb-data-mapper-annotations": "^0.7.3",
+    "apollo-server-lambda": "^2.6.9",
+    "aws-lambda": "^0.1.2",
+    "aws-sdk": "^2.494.0",
+    "class-transformer": "^0.2.3",
+    "graphql": "^14.4.2",
+    "graphql-playground-middleware-lambda": "^1.7.13",
+    "inversify": "^5.0.1",
+    "path": "^0.12.7",
+    "reflect-metadata": "^0.1.13",
+    "source-map-support": "^0.5.10",
+    "type-graphql": "^0.17.4",
+    "typeorm": "^0.2.18",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.17",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^10.12.18",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "serverless-dynamodb-local": "^0.2.38",
+    "serverless-offline": "^5.10.1",
+    "serverless-webpack": "^5.2.0",
+    "ts-loader": "^5.3.3",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.2.4",
+    "webpack": "^4.29.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "author": "The serverless webpack authors (https://github.com/elastic-coders/serverless-webpack)",
+  "license": "MIT"
+}

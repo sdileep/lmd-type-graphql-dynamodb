@@ -1,0 +1,148 @@
+service:
+  name: lmd-type-graphql-dynamodb
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-2
+  memorySize: 128
+
+plugins:
+  - serverless-webpack
+  - serverless-dynamodb-local
+  - serverless-offline
+
+custom:
+  webpack:
+    webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
+    includeModules: false   # Node modules configuration for packaging
+    packager: 'npm'   # Packager that will be used to package your external modules
+  serverless-offline:
+    port: 4000
+    webpackIncludeModules: true
+  dynamodb:
+    stages:
+      - local
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    #   seed: true
+    # seed:
+    #   test:
+    #     sources:
+    #       - table: Users
+    #         sources: [seed-data/Users.json]
+    #       - table: Tweets
+    #         sources: [seed-data/Tweets.json]
+
+functions:
+  graphQLAPI:
+      handler: src/recipe/handler.graphql
+      events:
+          - http:
+              method: post
+              path: "/api"
+              cors: true
+
+  # Not to be deployed on production
+  graphQLPlayground:
+      handler: src/recipe/handler.playgroundHandler
+      events:
+          - http:
+              method: get
+              path: "/playground"
+              cors: true
+  # graphql:
+  #   handler: src/recipe/handler.graphql
+  #   role: ServiceRole
+  #   events:
+  #   - http:
+  #       path: graphql
+  #       method: post
+  #       cors: true
+  #   - http:
+  #       path: graphql
+  #       method: get
+  # playground:
+  #   handler: src/recipe/handler.playground
+  #   events:
+  #     - http:
+  #         method: get
+  #         path: playground
+
+
+
+resources:
+  Resources:
+    RecipeTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        KeySchema:
+          -
+            AttributeName: pk
+            KeyType: HASH
+          -
+            AttributeName: sk
+            KeyType: RANGE
+        AttributeDefinitions:
+          -
+            AttributeName: pk
+            AttributeType: S
+          -
+            AttributeName: sk
+            AttributeType: S
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
+        TableName: 'Recipes'
+    ServiceRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        RoleName: "DynamoRole"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          -
+            PolicyName: "Dynamo-ServiceRole-Policy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "dynamodb:Query"
+                    - "dynamodb:BatchWriteItem"
+                    - "dynamodb:GetItem"
+                    - "dynamodb:DeleteItem"
+                    - "dynamodb:PutItem"
+                    - "dynamodb:Scan"
+                    - "dynamodb:UpdateItem"
+                  Resource:
+                    - "arn:aws:dynamodb:ap-southeast-2:*:table/Recipes"
+                    - "arn:aws:dynamodb:ap-southeast-2:*:table/Recipes/*"
+    XrayLambdaRolePolicy:
+      Type: "AWS::IAM::Policy"
+      Properties:
+        PolicyName: "xray-policy"
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Action:
+                - "xray:PutTraceSegments"
+                - "xray:PutTelemetryRecords"
+              Resource:
+                - "*"
+        Roles:
+          - Ref: ServiceRole

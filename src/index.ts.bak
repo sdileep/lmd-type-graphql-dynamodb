@@ -1,0 +1,132 @@
+// import { ApolloServer, gql } from "apollo-server-lambda";
+// import { CommentService } from "./comment.service";
+
+// const typeDefs = gql`
+//   type Comment {
+//     msgId: Int
+//     userId: String
+//     content: String
+//     createdAt: String
+//     deleted: Boolean
+//   }
+//   type Query {
+//     get(itemId: String): [Comment]
+//   }
+//   type Mutation {
+//     add(itemId: String, userId: String, content: String): [Comment]
+//     edit(itemId: String, msgId: Int, userId: String, content: String): [Comment]
+//     delete(itemId: String, msgId: Int, userId: String): [Comment]
+//   }
+// `;
+
+// const resolvers = {
+//   Query: {
+//     // Get Comments
+//     get: (root, args) => {
+//       try {
+//         console.log(root);
+//         const service = new CommentService();
+//         return service.getComments(args.itemId);
+//       } catch (error) {
+//         console.log("Error: ", error);
+//       }
+//     }
+//   },
+//   Mutation: {
+//     // Add Comments
+//     add: (roots, args) => {
+//       try {
+//         console.log(roots);
+//         const service = new CommentService();
+//         return service.addComments(args.itemId, args.userId, args.content);
+//       } catch (error) {
+//         console.log("Error: ", error);
+//       }
+//     },
+//     //Edit Comment
+//     edit: (roots, args) => {
+//       console.log(roots);
+//       const service = new CommentService();
+//       return service.editComments(
+//         args.itemId,
+//         args.msgId,
+//         args.userId,
+//         args.content
+//       );
+//     },
+//     // Delete Comment
+//     delete: (roots, args) => {
+//       console.log(roots);
+//       const service = new CommentService();
+//       return service.deleteComments(args.itemId, args.msgId, args.userId);
+//     }
+//   }
+// };
+
+import { ApolloServer, gql } from 'apollo-server-lambda'
+import { buildSchema } from 'type-graphql'
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+})
+
+export const graphqlHandler = server.createHandler({
+  cors: {
+    origin: true,
+    credentials: true,
+  },
+})
+
+const schema = await buildSchema({
+  resolvers: [RecipeResolver],
+})
+
+// import 'reflect-metadata'
+// import { connect } from 'mongoose'
+// import { ApolloServer, makeExecutableSchema } from 'apollo-server'
+// import { buildSchema } from 'type-graphql'
+// import { mergeResolvers, mergeTypeDefs, mergeSchemas } from 'graphql-toolkit'
+// import { PORT, MONGO_HOST, DB_NAME } from './modules/common/consts'
+// import UserResolver from './post/Resolver'
+// import { authChecker } from './post/authChecker'
+// import { setUpAccounts } from './post/accounts'
+// import { TypegooseMiddleware } from './middleware/typegoose'
+// ;(async () => {
+//   const mongooseConnection = await connect(
+//     `mongodb://${MONGO_HOST || 'localhost'}:27017/${DB_NAME}`,
+//     { useNewUrlParser: true }
+//   )
+//   const { accountsGraphQL, accountsServer } = setUpAccounts(mongooseConnection.connection)
+
+//   const typeGraphqlSchema = await buildSchema({
+//     resolvers: [UserResolver],
+//     globalMiddlewares: [TypegooseMiddleware],
+//     // scalarsMap: [{ type: ObjectId, scalar: ObjectIdScalar }],
+//     validate: false,
+//     emitSchemaFile: true,
+//     authChecker,
+//   })
+
+//   const schema = makeExecutableSchema({
+//     typeDefs: mergeTypeDefs([accountsGraphQL.typeDefs]),
+//     resolvers: mergeResolvers([accountsGraphQL.resolvers]),
+//     schemaDirectives: {
+//       ...accountsGraphQL.schemaDirectives,
+//     },
+//   })
+
+//   const server = new ApolloServer({
+//     schema: mergeSchemas({
+//       schemas: [schema, typeGraphqlSchema],
+//     }),
+//     context: accountsGraphQL.context,
+//     formatError: error => {
+//       console.error(error)
+//       return error
+//     },
+//     playground: true,
+//   })
+
+//   await server.listen({ port: PORT })
+//   console.log(`🚀 Server ready at localhost:${PORT}`)
+// })()

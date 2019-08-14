@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    // "lib": ["es5", "es6", "esnext.asynciterable", "es7", "es2017"],
+    "declaration": false,
+    "esModuleInterop": true,
+    "lib": ["es2017"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowJs": false,
+    "sourceMap": true,
+    "target": "es2017",
+    // "outDir": "lib"
+    "outDir": "./build"
+  },
+  "exclude": ["node_modules"]
+}
