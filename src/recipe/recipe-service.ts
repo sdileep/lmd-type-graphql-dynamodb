@@ -29,13 +29,13 @@ export class Service {
   private readonly model: DataMapper
 
   constructor() {
-    const client = new DynamoDB({
-      region: 'localhost',
-      endpoint: 'http://localhost:8000',
-      accessKeyId: 'DEFAULT_ACCESS_KEY', // needed if you don't have aws credentials at all in env
-      secretAccessKey: 'DEFAULT_SECRET', // needed if you don't have aws credentials at all in env
-    })
-    // const client = new DynamoDB({ region: 'ap-southeast-2' })
+    // const client = new DynamoDB({
+    //   region: 'localhost',
+    //   endpoint: 'http://localhost:8000',
+    //   accessKeyId: 'DEFAULT_ACCESS_KEY', // needed if you don't have aws credentials at all in env
+    //   secretAccessKey: 'DEFAULT_SECRET', // needed if you don't have aws credentials at all in env
+    // })
+    const client = new DynamoDB({apiVersion: "2012-08-10", region: 'ap-southeast-2' })
     this.model = new DataMapper({ client })
   }
 
@@ -54,20 +54,25 @@ export class Service {
   //   return this.model.find(selector)
   // }
 
-  async create(recipe: Recipe) {
-    const toSave: Recipe = {
-      ...recipe,
-      pk: `recipe:${uuidv4()}`,
-      sk: new Date().toISOString(),
-      id: uuidv4(),
-      averageRating: 0,
-      creationDate: new Date(),
-      specification: undefined,
-      ratings: [1, 3, 5, 6, 3, 9],
-      ratingsCount: 6,
-    }
-    await this.model.put({ item: toSave })
+  async create(recipe: Recipe): Promise<Recipe> {
+    const toSave: Recipe = new Recipe()
+    toSave.pk = `recipe:${uuidv4()}`
+    toSave.sk = new Date().toISOString()
+    toSave.id = uuidv4()
+    toSave.creationDate = new Date()
+    toSave.ratings = [1, 3, 5, 6, 3, 9]
+    toSave.ratingsCount = 6,
+
+    toSave.description = recipe.description
+    toSave.title = recipe.title
+
     console.log('Saved recipe id: ', recipe.id)
+    
+    return new Promise<Recipe>(async resolve => {
+      await this.model.put({ item: toSave })
+      return resolve(toSave)
+    }) 
+    
 
     // var expires = new Date();
     // expires.setTime(expires.getTime() + (60*60*1000)); // Add 1 hour.
@@ -88,14 +93,14 @@ export class Service {
     //   TableName: 'table'
     // }
   }
-  async get(_id: string) {
+  async get(_id: string): Promise<any> {
     const toFetch = new Recipe()
     toFetch.pk = _id
-    return await this.model.get({ item: toFetch })
+    return this.model.get({ item: toFetch })
   }
 
-  async delete(_id: string) {
+  async delete(_id: string): Promise<any> {
     const recipe = await this.get(_id)
-    return await this.model.delete({ item: recipe })
+    return this.model.delete({ item: recipe })
   }
 }

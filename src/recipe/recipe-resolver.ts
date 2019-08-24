@@ -14,7 +14,8 @@ import { plainToClass } from 'class-transformer'
 import { Recipe } from './recipe-type'
 import { RecipeInput } from './recipe-input'
 import { createRecipeSamples } from './recipe-samples'
-import { Service } from './recipe-service.ts'
+import { Service } from './recipe-service'
+
 
 @Resolver(of => Recipe)
 export class RecipeResolver implements ResolverInterface<Recipe> {
@@ -25,13 +26,15 @@ export class RecipeResolver implements ResolverInterface<Recipe> {
   }
 
   @Query(returns => Recipe, { nullable: true })
-  async recipe(@Arg('title') title: string): Promise<Recipe | undefined> {
-    return await this.items.find(recipe => recipe.title === title)
+  async recipe(@Arg('title') title: string): Promise<Recipe> {
+    const item = this.items.find(recipe => recipe.title === title)
+    return new Promise<Recipe>(resolve => {return resolve(item)}) 
   }
 
-  @Query(returns => [Recipe], { description: 'Get all the recipes from around the world ' })
+  @Query(returns => [Recipe], { description: 'Get all the recipes from around the world ', nullable: true })
   async recipes(): Promise<Recipe[]> {
-    return await this.items
+    const items = this.items
+    return new Promise<Recipe[]>(resolve => {return resolve(items)}) 
   }
 
   @Mutation(returns => Recipe)
@@ -43,8 +46,7 @@ export class RecipeResolver implements ResolverInterface<Recipe> {
       creationDate: new Date(),
     })
     // await this.items.push(recipe)
-    await this.service.create(recipe)
-    return recipe
+    return this.service.create(recipe)
   }
 
   @FieldResolver()

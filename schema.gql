@@ -16,7 +16,7 @@ type Query {
   recipe(title: String!): Recipe
 
   """Get all the recipes from around the world """
-  recipes: [Recipe!]!
+  recipes: [Recipe!]
 }
 
 """Object representing cooking recipe"""

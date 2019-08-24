@@ -6,7 +6,8 @@ provider:
   runtime: nodejs10.x
   stage: ${opt:stage, 'dev'}
   region: ap-southeast-2
-  memorySize: 128
+  memorySize: 256
+  timeout: 30
 
 plugins:
   - serverless-webpack
@@ -15,9 +16,9 @@ plugins:
 
 custom:
   webpack:
-    webpackConfig: 'webpack.config.js'   # Name of webpack configuration file
-    includeModules: false   # Node modules configuration for packaging
-    packager: 'npm'   # Packager that will be used to package your external modules
+    webpackConfig: 'webpack.config.js' # Name of webpack configuration file
+    includeModules: false # Node modules configuration for packaging
+    packager: 'npm' # Packager that will be used to package your external modules
   serverless-offline:
     port: 4000
     webpackIncludeModules: true
@@ -39,21 +40,21 @@ custom:
 
 functions:
   graphQLAPI:
-      handler: src/recipe/handler.graphql
-      events:
-          - http:
-              method: post
-              path: "/api"
-              cors: true
-
+    handler: handler.graphql
+    role: ServiceRole
+    events:
+      - http:
+          method: post
+          path: '/api'
+          cors: true
   # Not to be deployed on production
-  graphQLPlayground:
-      handler: src/recipe/handler.playgroundHandler
-      events:
-          - http:
-              method: get
-              path: "/playground"
-              cors: true
+  # graphQLPlayground:
+  #     handler: src/recipe/handler.playgroundHandler
+  #     events:
+  #         - http:
+  #             method: get
+  #             path: "/playground"
+  #             cors: true
   # graphql:
   #   handler: src/recipe/handler.graphql
   #   role: ServiceRole
@@ -72,77 +73,81 @@ functions:
   #         method: get
   #         path: playground
 
-
-
 resources:
   Resources:
     RecipeTable:
       Type: 'AWS::DynamoDB::Table'
       Properties:
         KeySchema:
-          -
-            AttributeName: pk
+          - AttributeName: pk
             KeyType: HASH
-          -
-            AttributeName: sk
+          - AttributeName: sk
             KeyType: RANGE
         AttributeDefinitions:
-          -
-            AttributeName: pk
+          - AttributeName: pk
             AttributeType: S
-          -
-            AttributeName: sk
+          - AttributeName: sk
             AttributeType: S
         ProvisionedThroughput:
           ReadCapacityUnits: 10
           WriteCapacityUnits: 10
         TableName: 'Recipes'
     ServiceRole:
-      Type: "AWS::IAM::Role"
+      Type: 'AWS::IAM::Role'
       Properties:
-        RoleName: "DynamoRole"
+        RoleName: 'DynamoRole'
         AssumeRolePolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
-            -
-              Effect: "Allow"
+            - Effect: 'Allow'
               Principal:
                 Service:
-                  - "lambda.amazonaws.com"
+                  - 'lambda.amazonaws.com'
               Action:
-                - "sts:AssumeRole"
+                - 'sts:AssumeRole'
         Policies:
-          -
-            PolicyName: "Dynamo-ServiceRole-Policy"
+          - PolicyName: 'Dynamo-ServiceRole-Policy'
             PolicyDocument:
-              Version: "2012-10-17"
+              Version: '2012-10-17'
               Statement:
-                -
-                  Effect: "Allow"
+                - Effect: 'Allow'
                   Action:
-                    - "dynamodb:Query"
-                    - "dynamodb:BatchWriteItem"
-                    - "dynamodb:GetItem"
-                    - "dynamodb:DeleteItem"
-                    - "dynamodb:PutItem"
-                    - "dynamodb:Scan"
-                    - "dynamodb:UpdateItem"
+                    - 'dynamodb:Query'
+                    - 'dynamodb:BatchWriteItem'
+                    - 'dynamodb:GetItem'
+                    - 'dynamodb:DeleteItem'
+                    - 'dynamodb:PutItem'
+                    - 'dynamodb:Scan'
+                    - 'dynamodb:UpdateItem'
                   Resource:
-                    - "arn:aws:dynamodb:ap-southeast-2:*:table/Recipes"
-                    - "arn:aws:dynamodb:ap-southeast-2:*:table/Recipes/*"
+                    - 'arn:aws:dynamodb:ap-southeast-2:*:table/Recipes'
+                    - 'arn:aws:dynamodb:ap-southeast-2:*:table/Recipes/*'
+                - Effect: Allow # note that these rights are given in the default policy and are required if you want logs out of your lambda(s)
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - 'arn:aws:logs:ap-southeast-2:*:log-group:/aws/lambda/*:*:*'
+                    # - 'Fn::Join':
+                    #   - ':'
+                    #     -
+                    #       - 'arn:aws:logs'
+                    #       - Ref: 'AWS::Region'
+                    #       - Ref: 'AWS::AccountId'
+                    #       - 'log-group:/aws/lambda/*:*:*'
     XrayLambdaRolePolicy:
-      Type: "AWS::IAM::Policy"
+      Type: 'AWS::IAM::Policy'
       Properties:
-        PolicyName: "xray-policy"
+        PolicyName: 'xray-policy'
         PolicyDocument:
-          Version: "2012-10-17"
+          Version: '2012-10-17'
           Statement:
-            -
-              Effect: "Allow"
+            - Effect: 'Allow'
               Action:
-                - "xray:PutTraceSegments"
-                - "xray:PutTelemetryRecords"
+                - 'xray:PutTraceSegments'
+                - 'xray:PutTelemetryRecords'
               Resource:
-                - "*"
+                - '*'
         Roles:
           - Ref: ServiceRole
