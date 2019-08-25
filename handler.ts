@@ -4,9 +4,9 @@ import 'reflect-metadata'
 import { ApolloServer } from 'apollo-server-lambda'
 import {
   Context,
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Callback,
+  // APIGatewayProxyEvent,
+  // APIGatewayProxyResult,
+  // Callback,
   APIGatewayEvent,
 } from 'aws-lambda'
 import * as TypeGraphQL from 'type-graphql'
@@ -126,78 +126,114 @@ import { RecipeResolver } from './src/recipe/recipe-resolver'
 // }
 
 // import path from 'path'
-// const schema: GraphQLSchema = TypeGraphQL.buildSchemaSync({
-//   resolvers: [RecipeResolver],
-//   // use document converting middleware
-//   // globalMiddlewares: [TypegooseMiddleware],
-//   // emitSchemaFile: path.resolve(__dirname, 'schema.graphql'), //for some reason specifying path fails
+const init = () => {
+  const schema = TypeGraphQL.buildSchemaSync({
+    resolvers: [RecipeResolver],
+  })
+  
+  const server = new ApolloServer({
+    schema,
+    context: async ({ context }: { event: APIGatewayEvent; context: Context }) => {
+      context.callbackWaitsForEmptyEventLoop = false
+      return { auth: { isAuthenticated: false } }
+    },
+    playground: process.env.NODE_ENV !== 'production'
+  })
+  
 
-//   emitSchemaFile: true,
-//   // use ObjectId scalar mapping
-//   // scalarsMap: [{ type: ObjectId, scalar: ObjectIdScalar }],
-// })
-
-// const server = new ApolloServer({
-//   schema,
-//   context: async ({ context }: { event: APIGatewayEvent; context: Context }) => {
-//     context.callbackWaitsForEmptyEventLoop = false
-//     return { auth: { isAuthenticated: false } }
-//   },
-// })
-
-// export const graphql = server.createHandler({ cors: { origin: process.env.CORS_ORIGIN } })
-
-
-
-// import path from 'path'
-async function getServer() {
-  console.log('Inside get Schema')
-  try {
-    const {resolvers, typeDefs} = await TypeGraphQL.buildTypeDefsAndResolvers({
-      resolvers: [RecipeResolver],
-      // emitSchemaFile: true,
-    })
-    const server = new ApolloServer({
-      typeDefs,
-      resolvers,
-      
-      // By default, the GraphQL Playground interface and GraphQL introspection
-      // is disabled in "production" (i.e. when `process.env.NODE_ENV` is `production`).
-      //
-      // If you'd like to have GraphQL Playground and introspection enabled in production,
-      // the `playground` and `introspection` options must be set explicitly to `true`.
-      playground: true,
-      introspection: true,
-      context: async ({ context }: { event: APIGatewayEvent; context: Context }) => {
-        context.callbackWaitsForEmptyEventLoop = false
-        return { auth: { isAuthenticated: false } }
-      },
-    });
-    return server
-  } catch (e) {
-    console.log('Error at get Schema')
-    console.log(`Error occured while boostrapping: , ${JSON.stringify(e, null, 2)}`)
-    throw e
-  } finally {
-    console.log('Finish get Schema')
-  }
+  return server.createHandler({ cors: { origin: process.env.CORS_ORIGIN } })
 }
 
-const createHandler = async () => {
-    console.log('About to generate schema: ');
-    (global as any).server = (global as any).server || (await getServer())
-    const server = (global as any).server
-    return server.createHandler({ cors: { origin: process.env.CORS_ORIGIN } })
-}
+export const graphql = init()
+	// schema: new GraphQLSchema({
+	// 	query: new GraphQLObjectType({
+	// 		name: 'RootQueryType',
+	// 		fields: schemaObject
+	// 	})
+	// }),
+	// context: async ({ event, context }) => {
+	// 	if(event.source === 'serverless-plugin-warmup') {
+	// 		throw new AuthenticationError('Warmup Complete');
+	// 	}
 
-// export const graphql = async (
-//   event: APIGatewayProxyEvent,
-//   context: Context,
-//   callback: Callback<APIGatewayProxyResult>
-// ) => {
-//   const handler = await createHandler()
-//   return handler(event, context, callback)
+
+	// 	return {
+	// 		headers: event.headers,
+	// 		functionName: context.functionName,
+	// 		event,
+	// 		context
+	// 	};
+	// },
+	// tracing: true,
+	// engine: { apiKey: process.env.APOLLO_ENGINE_KEY },
+	// formatError: error => {
+	// 	delete error.extensions;
+	// 	delete error.path;
+
+	// 	return error;
+	// },
+	// playground: process.env.NODE_ENV !== 'production'
+
+
+//WORKING
+
+// // import path from 'path'
+// async function getServer() {
+//   console.log('Inside get Schema')
+//   try {
+//     const { resolvers, typeDefs } = await TypeGraphQL.buildTypeDefsAndResolvers({
+//       resolvers: [RecipeResolver],
+//       // emitSchemaFile: true,
+//     })
+//     const server = new ApolloServer({
+//       typeDefs,
+//       resolvers,
+
+//       // By default, the GraphQL Playground interface and GraphQL introspection
+//       // is disabled in "production" (i.e. when `process.env.NODE_ENV` is `production`).
+//       //
+//       // If you'd like to have GraphQL Playground and introspection enabled in production,
+//       // the `playground` and `introspection` options must be set explicitly to `true`.
+//       playground: true,
+//       introspection: true,
+//       context: async ({ context }: { event: APIGatewayEvent; context: Context }) => {
+//         context.callbackWaitsForEmptyEventLoop = false
+//         return { auth: { isAuthenticated: false } }
+//       },
+//     })
+//     return server
+//   } catch (e) {
+//     console.log('Error at get Schema')
+//     console.log(`Error occured while boostrapping: , ${JSON.stringify(e, null, 2)}`)
+//     throw e
+//   } finally {
+//     console.log('Finish get Schema')
+//   }
 // }
+
+// const createHandler = async () => {
+//   console.log('About to generate schema: ')
+//   ;(global as any).server = (global as any).server || (await getServer())
+//   const server = (global as any).server
+//   return server.createHandler({ cors: { origin: process.env.CORS_ORIGIN } })
+// }
+
+// // export const graphql = async (
+// //   event: APIGatewayProxyEvent,
+// //   context: Context,
+// //   callback: Callback<APIGatewayProxyResult>
+// // ) => {
+// //   const handler = await createHandler()
+// //   return handler(event, context, callback)
+// // }
+
+// // export const graphql = (
+// //   event: APIGatewayProxyEvent,
+// //   context: Context,
+// //   callback: Callback<APIGatewayProxyResult>
+// // ) => {
+// //   createHandler().then(handler => handler(event, context, callback))
+// // }
 
 // export const graphql = (
 //   event: APIGatewayProxyEvent,
@@ -207,12 +243,15 @@ const createHandler = async () => {
 //   createHandler().then(handler => handler(event, context, callback))
 // }
 
-export const graphql = (
-  event: APIGatewayProxyEvent,
-  context: Context,
-  callback: Callback<APIGatewayProxyResult>
-) => {
-  createHandler().then(handler => handler(event, context, callback))
-}
+// // export const playgroundHandler = lambdaPlayground({ endpoint: process.env.GRAPHQL_API_PATH })
 
-// export const playgroundHandler = lambdaPlayground({ endpoint: process.env.GRAPHQL_API_PATH })
+// // export const graphql = async (
+// //   event: APIGatewayProxyEvent,
+// //   context: Context,
+// //   callback: Callback<APIGatewayProxyResult>
+// // ) => {
+// //   ;(global as any).handler = (global as any).handler || (await createHandler())
+// //   const handler = (global as any).handler
+// //   // createHandler().then(handler => handler(event, context, callback))
+// //   handler(event, context, callback)
+// // }

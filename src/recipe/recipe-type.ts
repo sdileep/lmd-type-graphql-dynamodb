@@ -25,11 +25,10 @@ export class Recipe {
   @attribute()
   id: string
 
-  // @Field(type => String, { nullable: true, deprecationReason: 'Use `description` field instead' })
-  // @attribute()
-  // get specification(): string | undefined {
-  //   return this.description
-  // }
+  @Field(type => String, { nullable: true, deprecationReason: 'Use `description` field instead' })
+  get specification(): string | undefined {
+    return this.description
+  }
 
   @Field({ nullable: true, description: 'The recipe description with preparation info' })
   @attribute()

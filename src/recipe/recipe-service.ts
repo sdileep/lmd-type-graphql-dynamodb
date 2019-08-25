@@ -55,22 +55,22 @@ export class Service {
   // }
 
   async create(recipe: Recipe): Promise<Recipe> {
-    const toSave: Recipe = new Recipe()
-    toSave.pk = `recipe:${uuidv4()}`
-    toSave.sk = new Date().toISOString()
-    toSave.id = uuidv4()
-    toSave.creationDate = new Date()
-    toSave.ratings = [1, 3, 5, 6, 3, 9]
-    toSave.ratingsCount = 6,
+    const item: Recipe = new Recipe()
+    item.creationDate = new Date()
+    item.id = uuidv4()
+    item.pk = `recipe:${uuidv4()}`
+    item.ratings = [1, 3, 5, 6, 3, 9]
+    item.ratingsCount = 6,
+    item.sk = new Date().toISOString()
 
-    toSave.description = recipe.description
-    toSave.title = recipe.title
+    item.description = recipe.description
+    item.title = recipe.title
 
-    console.log('Saved recipe id: ', recipe.id)
+    console.log('Saved recipe id: ', item.id)
     
     return new Promise<Recipe>(async resolve => {
-      await this.model.put({ item: toSave })
-      return resolve(toSave)
+      await this.model.put({ item })
+      return resolve(item)
     }) 
     
 
